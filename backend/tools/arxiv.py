@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 async def search_arxiv(query: str, max_results: int = 3) -> list[dict]:
     """
     Search ArXiv for academic papers.
+
     Returns:
     [
         {
@@ -37,10 +38,10 @@ async def search_arxiv(query: str, max_results: int = 3) -> list[dict]:
             response = await client.get(
                 url,
                 params=params,
-                timeout=15.0
+                timeout=15.0,
             )
 
-            # Don't crash the pipeline if ArXiv rate-limits us
+            # Don't crash if ArXiv rate-limits us
             if response.status_code != 200:
                 print(
                     f"ArXiv returned {response.status_code}: "
@@ -85,4 +86,6 @@ async def search_arxiv(query: str, max_results: int = 3) -> list[dict]:
 
         return results
 
-   
+    except Exception as e:
+        print(f"ArXiv search failed: {e}")
+        return []
