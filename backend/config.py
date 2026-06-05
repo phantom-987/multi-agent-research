@@ -21,4 +21,4 @@ POSTGRES_URL = os.getenv("POSTGRES_URL", "postgresql://localhost:5432/research")
 # App
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
 APP_PORT = int(os.getenv("APP_PORT", 8000))
-CORS_ORIGINS = ["http://localhost:3000"]
+CORS_ORIGINS = ["http://localhost:3000", "https://multi-agent-research-fawn.vercel.app"]
