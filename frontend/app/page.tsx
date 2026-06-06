@@ -6,7 +6,6 @@ import QueryInput from "./components/QueryInput";
 import AgentStatus from "./components/AgentStatus";
 import ReportViewer from "./components/ReportViewer";
 
-// Load starfield only on client (uses canvas/window)
 const StarfieldBackground = dynamic(
   () => import("./components/StarfieldBackground"),
   { ssr: false }
@@ -52,6 +51,20 @@ export default function Home() {
     });
   };
 
+  const processLine = (line: string, setReportFn: (r: Report) => void, setErrorFn: (e: string) => void) => {
+    if (!line.startsWith("data: ")) return;
+    try {
+      const json = JSON.parse(line.replace("data: ", ""));
+      if (json.event === "agent_start") updateAgent(json.agent, "running", json.data);
+      else if (json.event === "agent_done") updateAgent(json.agent, "done", json.data);
+      else if (json.event === "agent_error") updateAgent(json.agent, "error", json.data);
+      else if (json.event === "report_ready") setReportFn(JSON.parse(json.data));
+      else if (json.event === "error") setErrorFn(json.data);
+    } catch {
+      // ignore malformed
+    }
+  };
+
   const handleSearch = async (query: string) => {
     setLoading(true);
     setReport(null);
@@ -60,40 +73,59 @@ export default function Home() {
       AGENT_ORDER.map((name) => ({ name, status: "pending" as const, message: "Waiting..." }))
     );
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research`, {
+      const controller = new AbortController();
+      // 3 minute timeout — enough for all 5 agents
+      const timeoutId = setTimeout(() => controller.abort(), 180000);
+
+      const response = await fetch(`${API_URL}/research`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "text/event-stream",
+          "Cache-Control": "no-cache",
+        },
         body: JSON.stringify({ query }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error("No response stream available");
 
       const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((l) => l.startsWith("data: "));
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        // Keep last incomplete line in buffer
+        buffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          try {
-            const json = JSON.parse(line.replace("data: ", ""));
-            if (json.event === "agent_start") updateAgent(json.agent, "running", json.data);
-            else if (json.event === "agent_done") updateAgent(json.agent, "done", json.data);
-            else if (json.event === "agent_error") updateAgent(json.agent, "error", json.data);
-            else if (json.event === "report_ready") setReport(JSON.parse(json.data));
-            else if (json.event === "error") setError(json.data);
-          } catch {
-            // ignore malformed
-          }
+          processLine(line.trim(), setReport, setError);
         }
       }
+
+      // Process any remaining buffer
+      if (buffer.trim()) {
+        processLine(buffer.trim(), setReport, setError);
+      }
+
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,135 +133,53 @@ export default function Home() {
 
   return (
     <>
-      {/* Animated background */}
       <StarfieldBackground />
-
       <main
         className="page-content"
         style={{ minHeight: "100vh", color: "white", overflow: "auto" }}
       >
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px 60px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px 80px" }}>
 
-          {/* ── Navbar ── */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 48,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "0.72rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.18em",
-                color: "rgba(148,163,184,0.6)",
-                fontWeight: 500,
-              }}
-            >
+          {/* Navbar */}
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, marginBottom: 48 }}>
+            <span style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(148,163,184,0.6)", fontWeight: 500 }}>
               Multi-Agent Research Analyst
             </span>
             <div className="nav-dot" />
           </div>
 
-          {/* ── Hero ── */}
+          {/* Hero */}
           <div style={{ marginBottom: 48 }}>
-            {/* Status badge */}
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                borderRadius: 99,
-                border: "1px solid rgba(59,130,246,0.35)",
-                background: "rgba(59,130,246,0.1)",
-                padding: "8px 16px",
-                marginBottom: 28,
-              }}
-            >
-              <div
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: "#60a5fa",
-                  boxShadow: "0 0 8px rgba(96,165,250,0.9)",
-                  animation: "navPulse 2s ease-in-out infinite",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "0.72rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                  color: "#93c5fd",
-                  fontWeight: 600,
-                }}
-              >
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 99, border: "1px solid rgba(59,130,246,0.35)", background: "rgba(59,130,246,0.1)", padding: "8px 16px", marginBottom: 28 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#60a5fa", boxShadow: "0 0 8px rgba(96,165,250,0.9)", animation: "navPulse 2s ease-in-out infinite" }} />
+              <span style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.15em", color: "#93c5fd", fontWeight: 600 }}>
                 Multi-Agent Engine Active
               </span>
             </div>
 
-            {/* Heading */}
-            <h1
-              style={{
-                fontSize: "clamp(2.8rem, 7vw, 5rem)",
-                fontWeight: 700,
-                lineHeight: 1.1,
-                margin: "0 0 20px",
-                letterSpacing: "-0.02em",
-              }}
-            >
+            <h1 style={{ fontSize: "clamp(2.8rem, 7vw, 5rem)", fontWeight: 700, lineHeight: 1.1, margin: "0 0 20px", letterSpacing: "-0.02em" }}>
               {greeting},{" "}
-              <span style={{ color: "rgba(148,163,184,0.55)", fontWeight: 300 }}>
-                Researcher.
-              </span>
+              <span style={{ color: "rgba(148,163,184,0.55)", fontWeight: 300 }}>Researcher.</span>
             </h1>
 
-            {/* Subheading */}
-            <p
-              style={{
-                fontSize: "1.1rem",
-                color: "rgba(148,163,184,0.75)",
-                maxWidth: 560,
-                lineHeight: 1.65,
-                margin: 0,
-              }}
-            >
-              Deploy your fleet of specialized agents to synthesize complex data
-              points into actionable intelligence.
+            <p style={{ fontSize: "1.1rem", color: "rgba(148,163,184,0.75)", maxWidth: 560, lineHeight: 1.65, margin: 0 }}>
+              Deploy your fleet of specialized agents to synthesize complex data points into actionable intelligence.
             </p>
           </div>
 
-          {/* ── Search ── */}
+          {/* Search */}
           <QueryInput onSearch={handleSearch} loading={loading} />
 
-          {/* ── Agent Status ── */}
+          {/* Agent Status */}
           {agents.length > 0 && (
             <div style={{ marginTop: 32 }}>
               <AgentStatus agents={agents} />
             </div>
           )}
 
-          {/* ── Error ── */}
+          {/* Error */}
           {error && (
-            <div
-              className="fade-in"
-              style={{
-                marginTop: 24,
-                borderRadius: 16,
-                border: "1px solid rgba(239,68,68,0.3)",
-                background: "rgba(239,68,68,0.08)",
-                padding: "14px 18px",
-                color: "#fca5a5",
-                fontSize: "0.9rem",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
+            <div className="fade-in" style={{ marginTop: 24, borderRadius: 16, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", padding: "14px 18px", color: "#fca5a5", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 10 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
@@ -239,7 +189,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* ── Report ── */}
+          {/* Report */}
           {report && (
             <div style={{ marginTop: 32 }}>
               <ReportViewer report={report} />
