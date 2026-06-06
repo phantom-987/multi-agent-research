@@ -106,7 +106,7 @@ export default function Home() {
 
       <main
         className="page-content"
-        style={{ minHeight: "100vh", color: "white", overflowX: "hidden" }}
+        style={{ minHeight: "100vh", color: "white", overflow: "auto" }}
       >
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px 60px" }}>
 

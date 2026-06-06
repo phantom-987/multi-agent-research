@@ -16,6 +16,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'SF Pro Display', -apple-system, sans-serif;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── Starfield Canvas ── */
