@@ -21,7 +21,6 @@ export default function StarfieldBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Create stars
     const stars = Array.from({ length: 180 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -31,7 +30,6 @@ export default function StarfieldBackground() {
       phase: Math.random() * Math.PI * 2,
     }));
 
-    // Create subtle lines (constellation effect)
     const lineStars = stars.slice(0, 30);
 
     let t = 0;
@@ -39,7 +37,6 @@ export default function StarfieldBackground() {
       t += 0.008;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw faint connection lines
       ctx.strokeStyle = "rgba(59, 130, 246, 0.06)";
       ctx.lineWidth = 0.5;
       for (let i = 0; i < lineStars.length; i++) {
@@ -56,7 +53,6 @@ export default function StarfieldBackground() {
         }
       }
 
-      // Draw stars
       stars.forEach((s) => {
         const alpha = 0.3 + 0.7 * ((Math.sin(t * s.speed * 200 + s.phase) + 1) / 2);
         ctx.beginPath();
@@ -65,7 +61,6 @@ export default function StarfieldBackground() {
         ctx.fill();
       });
 
-      // A few bright "sparkle" stars
       const sparkles = [
         { x: 80, y: 60 },
         { x: 1200, y: 120 },
@@ -79,7 +74,6 @@ export default function StarfieldBackground() {
         ctx.arc(sp.x, sp.y, 2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
         ctx.fill();
-        // Cross sparkle
         ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
         ctx.lineWidth = 0.8;
         ctx.beginPath();
@@ -102,7 +96,6 @@ export default function StarfieldBackground() {
 
   return (
     <>
-      {/* Canvas starfield */}
       <canvas
         ref={canvasRef}
         style={{
@@ -110,9 +103,9 @@ export default function StarfieldBackground() {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
+          touchAction: "none",
         }}
       />
-      {/* Planet orb */}
       <div className="planet-orb" />
     </>
   );
