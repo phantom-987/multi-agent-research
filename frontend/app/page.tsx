@@ -61,7 +61,7 @@ export default function Home() {
     );
 
     try {
-      const response = await fetch("http://localhost:8000/research", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query }),
