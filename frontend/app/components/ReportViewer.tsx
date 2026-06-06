@@ -49,34 +49,45 @@ export default function ReportViewer({ report }: Props) {
   };
 
   return (
-    <div className="report-card fade-in">
+    <div
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 20,
+        overflow: "visible",
+        marginBottom: 40,
+      }}
+      className="fade-in"
+    >
       {/* Header */}
       <div
         style={{
           padding: "20px 24px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
+          gap: 12,
           background: "rgba(255,255,255,0.02)",
+          borderRadius: "20px 20px 0 0",
         }}
       >
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ color: "white", fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>
             Research Report
           </h2>
-          <p style={{ color: "rgba(148,163,184,0.7)", fontSize: "0.82rem", margin: "4px 0 0" }}>
+          <p style={{ color: "rgba(148,163,184,0.7)", fontSize: "0.82rem", margin: "4px 0 0", wordBreak: "break-word" }}>
             {report.query}
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           {report.fact_check_score !== null && (
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "1.5rem", fontWeight: 700, color: scoreColor(report.fact_check_score), margin: 0 }}>
+              <p style={{ fontSize: "1.4rem", fontWeight: 700, color: scoreColor(report.fact_check_score), margin: 0 }}>
                 {Math.round(report.fact_check_score * 100)}%
               </p>
-              <p style={{ fontSize: "0.7rem", color: "rgba(100,116,139,0.9)", margin: 0 }}>Fact Score</p>
+              <p style={{ fontSize: "0.65rem", color: "rgba(100,116,139,0.9)", margin: 0 }}>Fact Score</p>
             </div>
           )}
 
@@ -88,30 +99,16 @@ export default function ReportViewer({ report }: Props) {
               borderRadius: 10,
               color: copied ? "#4ade80" : "rgba(148,163,184,0.9)",
               fontSize: "0.82rem",
-              padding: "8px 16px",
+              padding: "8px 14px",
               cursor: "pointer",
               transition: "all 0.2s ease",
               display: "flex",
               alignItems: "center",
               gap: 6,
+              WebkitAppearance: "none",
             }}
           >
-            {copied ? (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Copied!
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                Copy
-              </>
-            )}
+            {copied ? "✓ Copied!" : "Copy"}
           </button>
         </div>
       </div>
@@ -133,6 +130,7 @@ export default function ReportViewer({ report }: Props) {
               cursor: "pointer",
               transition: "all 0.2s ease",
               textTransform: "capitalize",
+              WebkitAppearance: "none",
             }}
           >
             {tab}
@@ -141,9 +139,9 @@ export default function ReportViewer({ report }: Props) {
       </div>
 
       {/* Content */}
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: "24px 20px", overflow: "visible" }}>
         {activeTab === "report" && (
-          <div>
+          <div style={{ overflow: "visible" }}>
             {/* Executive Summary */}
             <div
               style={{
@@ -154,29 +152,48 @@ export default function ReportViewer({ report }: Props) {
                 marginBottom: 24,
               }}
             >
-              <h3 style={{ color: "#93c5fd", fontWeight: 600, fontSize: "0.9rem", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <h3 style={{
+                color: "#93c5fd",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                margin: "0 0 8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}>
                 Executive Summary
               </h3>
-              <p style={{ color: "rgba(203,213,225,0.9)", fontSize: "0.9rem", lineHeight: 1.7, margin: 0 }}>
+              <p style={{
+                color: "rgba(203,213,225,0.9)",
+                fontSize: "0.88rem",
+                lineHeight: 1.7,
+                margin: 0,
+                wordBreak: "break-word",
+              }}>
                 {report.summary}
               </p>
             </div>
 
             {report.sections.map((section, index) => (
               <div key={index} style={{ marginBottom: 24 }}>
-                <h3
-                  style={{
-                    color: "white",
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    margin: "0 0 10px",
-                    paddingLeft: 14,
-                    borderLeft: "3px solid #3b82f6",
-                  }}
-                >
+                <h3 style={{
+                  color: "white",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  margin: "0 0 10px",
+                  paddingLeft: 14,
+                  borderLeft: "3px solid #3b82f6",
+                  wordBreak: "break-word",
+                }}>
                   {section.title}
                 </h3>
-                <p style={{ color: "rgba(148,163,184,0.9)", fontSize: "0.88rem", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>
+                <p style={{
+                  color: "rgba(148,163,184,0.9)",
+                  fontSize: "0.88rem",
+                  lineHeight: 1.75,
+                  margin: 0,
+                  whiteSpace: "pre-line",
+                  wordBreak: "break-word",
+                }}>
                   {section.content}
                 </p>
               </div>
@@ -202,9 +219,10 @@ export default function ReportViewer({ report }: Props) {
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
+                  overflow: "hidden",
                 }}
               >
-                <span style={{ color: "rgba(100,116,139,0.6)", fontSize: "0.78rem", flexShrink: 0, minWidth: 20 }}>
+                <span style={{ color: "rgba(100,116,139,0.6)", fontSize: "0.78rem", flexShrink: 0 }}>
                   {index + 1}.
                 </span>
                 <a
@@ -219,8 +237,6 @@ export default function ReportViewer({ report }: Props) {
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                   }}
-                  onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                  onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
                 >
                   {src}
                 </a>
