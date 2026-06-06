@@ -11,92 +11,23 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'SF Pro Display', -apple-system, sans-serif;
+  min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-html {
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ── Starfield Canvas ── */
-#starfield {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ── Planet / Orb ── */
-.planet-orb {
-  position: fixed;
-  top: -80px;
-  right: -80px;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 35% 35%,
-    #1e3a6e 0%,
-    #0f1f4a 30%,
-    #060d1f 65%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 80px rgba(56, 100, 220, 0.25),
-    0 0 160px rgba(30, 60, 150, 0.12),
-    inset -20px -20px 60px rgba(0, 0, 0, 0.5);
-  z-index: 0;
-  pointer-events: none;
-  animation: planetFloat 8s ease-in-out infinite;
-}
-
-.planet-orb::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(100, 150, 255, 0.15) 0%,
-    transparent 60%
-  );
-}
-
-@keyframes planetFloat {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-8px, 12px); }
-}
-
-/* ── Twinkling Stars ── */
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.4); }
-}
-
-.star {
-  position: fixed;
-  border-radius: 50%;
-  background: white;
-  animation: twinkle var(--dur, 3s) ease-in-out infinite;
-  animation-delay: var(--delay, 0s);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* ── Page content sits above bg ── */
 .page-content {
   position: relative;
   z-index: 1;
-  -webkit-overflow-scrolling: touch;
-  overflow-y: auto;
+  min-height: 100vh;
 }
 
 /* ── Glassmorphism search box ── */
@@ -256,4 +187,10 @@ html {
 @keyframes navPulse {
   0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.8); }
   50% { box-shadow: 0 0 16px rgba(59, 130, 246, 1), 0 0 24px rgba(59, 130, 246, 0.4); }
+}
+
+/* ── Planet float animation ── */
+@keyframes planetFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-8px, 12px); }
 }

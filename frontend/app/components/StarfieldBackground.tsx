@@ -8,7 +8,6 @@ export default function StarfieldBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -25,14 +24,13 @@ export default function StarfieldBackground() {
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       r: Math.random() * 1.2 + 0.2,
-      alpha: Math.random(),
       speed: Math.random() * 0.003 + 0.001,
       phase: Math.random() * Math.PI * 2,
     }));
 
     const lineStars = stars.slice(0, 30);
-
     let t = 0;
+
     const draw = () => {
       t += 0.008;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -61,29 +59,6 @@ export default function StarfieldBackground() {
         ctx.fill();
       });
 
-      const sparkles = [
-        { x: 80, y: 60 },
-        { x: 1200, y: 120 },
-        { x: 400, y: 40 },
-        { x: 950, y: 280 },
-      ];
-      sparkles.forEach((sp) => {
-        if (sp.x > canvas.width) return;
-        const alpha = 0.5 + 0.5 * Math.sin(t * 1.5 + sp.x);
-        ctx.beginPath();
-        ctx.arc(sp.x, sp.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(sp.x - 6, sp.y);
-        ctx.lineTo(sp.x + 6, sp.y);
-        ctx.moveTo(sp.x, sp.y - 6);
-        ctx.lineTo(sp.x, sp.y + 6);
-        ctx.stroke();
-      });
-
       animationId = requestAnimationFrame(draw);
     };
     draw();
@@ -95,18 +70,38 @@ export default function StarfieldBackground() {
   }, []);
 
   return (
-    <>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        overflow: "hidden",
+      }}
+      aria-hidden="true"
+    >
       <canvas
         ref={canvasRef}
         style={{
-          position: "fixed",
+          position: "absolute",
           inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-          touchAction: "none",
+          display: "block",
         }}
       />
-      <div className="planet-orb" />
-    </>
+      {/* Planet orb */}
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          background: "radial-gradient(circle at 35% 35%, #1e3a6e 0%, #0f1f4a 30%, #060d1f 65%, transparent 100%)",
+          boxShadow: "0 0 80px rgba(56,100,220,0.25), 0 0 160px rgba(30,60,150,0.12)",
+          animation: "planetFloat 8s ease-in-out infinite",
+        }}
+      />
+    </div>
   );
 }
